@@ -2,10 +2,12 @@ package Controllers;
 
 import Models.ConexionMySQL;
 import Models.Pelicula;
+
+import java.sql.CallableStatement;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +19,6 @@ public class CRUDPelicula extends ConexionMySQL implements IPelicula {
 
     @Override
     public boolean registrar(Pelicula pelicula) {
-        // Validaciones
         if (pelicula.getTitulo() == null || pelicula.getTitulo().trim().isEmpty()) {
             return false;
         }
@@ -37,29 +38,27 @@ public class CRUDPelicula extends ConexionMySQL implements IPelicula {
             return false;
         }
 
-        // Generar PosterURL automáticamente
         String posterURL = generatePosterURL(pelicula.getTitulo());
         pelicula.setPosterURL(posterURL);
 
-        String sql = "INSERT INTO Peliculas (Titulo, Sinopsis, Genero, Director, ActoresPrincipales, FechaLanzamiento, " +
-                     "IdiomaOriginal, SubtitulosDisponibles, DuracionMinutos, Clasificacion, PosterURL) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String call = "{CALL sp_registrar_pelicula(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+        try (Connection conn = this.Conectar(); CallableStatement cs = conn.prepareCall(call)) {
 
-        try (Connection conn = this.Conectar();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, pelicula.getTitulo());
-            stmt.setString(2, pelicula.getSinopsis());
-            stmt.setString(3, pelicula.getGenero());
-            stmt.setString(4, pelicula.getDirector());
-            stmt.setString(5, pelicula.getActoresPrincipales());
-            stmt.setDate(6, pelicula.getFechaLanzamiento() != null ? java.sql.Date.valueOf(pelicula.getFechaLanzamiento()) : null);
-            stmt.setString(7, pelicula.getIdiomaOriginal());
-            stmt.setString(8, pelicula.getSubtitulosDisponibles());
-            stmt.setInt(9, pelicula.getDuracionMinutos());
-            stmt.setString(10, pelicula.getClasificacion());
-            stmt.setString(11, pelicula.getPosterURL());
+            cs.setString(1, pelicula.getTitulo());
+            cs.setString(2, pelicula.getSinopsis());
+            cs.setString(3, pelicula.getGenero());
+            cs.setString(4, pelicula.getDirector());
+            cs.setString(5, pelicula.getActoresPrincipales());
+            cs.setDate(6, java.sql.Date.valueOf(pelicula.getFechaLanzamiento()));
+            cs.setString(7, pelicula.getIdiomaOriginal());
+            cs.setString(8, pelicula.getSubtitulosDisponibles());
+            cs.setInt(9, pelicula.getDuracionMinutos());
+            cs.setString(10, pelicula.getClasificacion());
+            cs.setString(11, pelicula.getPosterURL());
+            cs.registerOutParameter(12, Types.TINYINT);
 
-            return stmt.executeUpdate() > 0;
+            cs.execute();
+            return cs.getByte(12) == 1;
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
@@ -68,7 +67,6 @@ public class CRUDPelicula extends ConexionMySQL implements IPelicula {
 
     @Override
     public boolean actualizar(Pelicula pelicula) {
-        // Mismas validaciones que en registrar
         if (pelicula.getTitulo() == null || pelicula.getTitulo().trim().isEmpty()) {
             return false;
         }
@@ -88,29 +86,28 @@ public class CRUDPelicula extends ConexionMySQL implements IPelicula {
             return false;
         }
 
-        // Actualizar PosterURL
-        pelicula.setPosterURL(generatePosterURL(pelicula.getTitulo()));
+        String posterURL = generatePosterURL(pelicula.getTitulo());
+        pelicula.setPosterURL(posterURL);
 
-        String sql = "UPDATE Peliculas SET Titulo=?, Sinopsis=?, Genero=?, Director=?, ActoresPrincipales=?, " +
-                     "FechaLanzamiento=?, IdiomaOriginal=?, SubtitulosDisponibles=?, DuracionMinutos=?, " +
-                     "Clasificacion=?, PosterURL=? WHERE ID=?";
+        String call = "{CALL sp_actualizar_pelicula(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}";
+        try (Connection conn = this.Conectar(); CallableStatement cs = conn.prepareCall(call)) {
 
-        try (Connection conn = this.Conectar();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, pelicula.getTitulo());
-            stmt.setString(2, pelicula.getSinopsis());
-            stmt.setString(3, pelicula.getGenero());
-            stmt.setString(4, pelicula.getDirector());
-            stmt.setString(5, pelicula.getActoresPrincipales());
-            stmt.setDate(6, pelicula.getFechaLanzamiento() != null ? java.sql.Date.valueOf(pelicula.getFechaLanzamiento()) : null);
-            stmt.setString(7, pelicula.getIdiomaOriginal());
-            stmt.setString(8, pelicula.getSubtitulosDisponibles());
-            stmt.setInt(9, pelicula.getDuracionMinutos());
-            stmt.setString(10, pelicula.getClasificacion());
-            stmt.setString(11, pelicula.getPosterURL());
-            stmt.setInt(12, pelicula.getId());
+            cs.setInt(1, pelicula.getId());
+            cs.setString(2, pelicula.getTitulo());
+            cs.setString(3, pelicula.getSinopsis());
+            cs.setString(4, pelicula.getGenero());
+            cs.setString(5, pelicula.getDirector());
+            cs.setString(6, pelicula.getActoresPrincipales());
+            cs.setDate(7, java.sql.Date.valueOf(pelicula.getFechaLanzamiento()));
+            cs.setString(8, pelicula.getIdiomaOriginal());
+            cs.setString(9, pelicula.getSubtitulosDisponibles());
+            cs.setInt(10, pelicula.getDuracionMinutos());
+            cs.setString(11, pelicula.getClasificacion());
+            cs.setString(12, pelicula.getPosterURL());
+            cs.registerOutParameter(13, Types.TINYINT);
 
-            return stmt.executeUpdate() > 0;
+            cs.execute();
+            return cs.getByte(13) == 1;
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
@@ -119,12 +116,14 @@ public class CRUDPelicula extends ConexionMySQL implements IPelicula {
 
     @Override
     public boolean eliminar(int id) {
-        String sql = "DELETE FROM Peliculas WHERE ID=?";
+        String call = "{CALL sp_eliminar_pelicula(?, ?)}";
+        try (Connection conn = this.Conectar(); CallableStatement cs = conn.prepareCall(call)) {
 
-        try (Connection conn = this.Conectar();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            return stmt.executeUpdate() > 0;
+            cs.setInt(1, id);
+            cs.registerOutParameter(2, Types.TINYINT);
+
+            cs.execute();
+            return cs.getByte(2) == 1;
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
@@ -133,12 +132,11 @@ public class CRUDPelicula extends ConexionMySQL implements IPelicula {
 
     @Override
     public Pelicula obtenerPorId(int id) {
-        String sql = "SELECT * FROM Peliculas WHERE ID=?";
+        String call = "{CALL sp_obtener_pelicula_por_id(?)}";
+        try (Connection conn = this.Conectar(); CallableStatement cs = conn.prepareCall(call)) {
 
-        try (Connection conn = this.Conectar();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            try (ResultSet rs = stmt.executeQuery()) {
+            cs.setInt(1, id);
+            try (ResultSet rs = cs.executeQuery()) {
                 if (rs.next()) {
                     return mapearPelicula(rs);
                 }
@@ -151,36 +149,18 @@ public class CRUDPelicula extends ConexionMySQL implements IPelicula {
 
     @Override
     public Pelicula obtenerPorUsuario(String usuario) {
-        // La tabla Peliculas no tiene un campo relacionado con usuario
+        // No aplica para películas
         return null;
     }
 
     @Override
     public List<Pelicula> buscarPorTitulo(String titulo) {
         List<Pelicula> peliculas = new ArrayList<>();
-        String sql;
-        PreparedStatement stmt;
+        String call = "{CALL sp_buscar_pelicula_por_titulo(?)}";
+        try (Connection conn = this.Conectar(); CallableStatement cs = conn.prepareCall(call)) {
 
-        if (titulo == null || titulo.trim().isEmpty()) {
-            sql = "SELECT * FROM Peliculas";
-            try (Connection conn = this.Conectar();
-                 PreparedStatement stmtAll = conn.prepareStatement(sql);
-                 ResultSet rs = stmtAll.executeQuery()) {
-                while (rs.next()) {
-                    peliculas.add(mapearPelicula(rs));
-                }
-                return peliculas;
-            } catch (SQLException e) {
-                e.printStackTrace();
-                return peliculas;
-            }
-        }
-
-        sql = "SELECT * FROM Peliculas WHERE Titulo LIKE ?";
-        try (Connection conn = this.Conectar();
-             PreparedStatement stmtSearch = conn.prepareStatement(sql)) {
-            stmtSearch.setString(1, "%" + titulo + "%");
-            try (ResultSet rs = stmtSearch.executeQuery()) {
+            cs.setString(1, titulo == null ? "" : titulo);
+            try (ResultSet rs = cs.executeQuery()) {
                 while (rs.next()) {
                     peliculas.add(mapearPelicula(rs));
                 }
@@ -194,11 +174,9 @@ public class CRUDPelicula extends ConexionMySQL implements IPelicula {
     @Override
     public List<Pelicula> obtenerTodos() {
         List<Pelicula> peliculas = new ArrayList<>();
-        String sql = "SELECT * FROM Peliculas";
+        String call = "{CALL sp_obtener_todas_peliculas()}";
+        try (Connection conn = this.Conectar(); CallableStatement cs = conn.prepareCall(call); ResultSet rs = cs.executeQuery()) {
 
-        try (Connection conn = this.Conectar();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 peliculas.add(mapearPelicula(rs));
             }
@@ -210,18 +188,20 @@ public class CRUDPelicula extends ConexionMySQL implements IPelicula {
 
     private Pelicula mapearPelicula(ResultSet rs) throws SQLException {
         return new Pelicula(
-            rs.getInt("ID"),
-            rs.getString("Titulo"),
-            rs.getString("Sinopsis"),
-            rs.getString("Genero"),
-            rs.getString("Director"),
-            rs.getString("ActoresPrincipales"),
-            rs.getDate("FechaLanzamiento") != null ? rs.getDate("FechaLanzamiento").toLocalDate() : null,
-            rs.getString("IdiomaOriginal"),
-            rs.getString("SubtitulosDisponibles"),
-            rs.getInt("DuracionMinutos"),
-            rs.getString("Clasificacion"),
-            rs.getString("PosterURL")
+                rs.getInt("ID"),
+                rs.getString("Titulo"),
+                rs.getString("Sinopsis"),
+                rs.getString("Genero"),
+                rs.getString("Director"),
+                rs.getString("ActoresPrincipales"),
+                rs.getDate("FechaLanzamiento") != null
+                ? rs.getDate("FechaLanzamiento").toLocalDate()
+                : null,
+                rs.getString("IdiomaOriginal"),
+                rs.getString("SubtitulosDisponibles"),
+                rs.getInt("DuracionMinutos"),
+                rs.getString("Clasificacion"),
+                rs.getString("PosterURL")
         );
     }
 
