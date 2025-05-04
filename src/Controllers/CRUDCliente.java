@@ -2,10 +2,12 @@ package Controllers;
 
 import Models.Cliente;
 import Models.ConexionMySQL;
+
+import java.sql.CallableStatement;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +19,6 @@ public class CRUDCliente extends ConexionMySQL implements ICliente {
 
     @Override
     public boolean registrar(Cliente cliente) {
-        // Validaciones
         if (cliente.getNombre() == null || cliente.getNombre().trim().isEmpty()) {
             return false;
         }
@@ -31,16 +32,18 @@ public class CRUDCliente extends ConexionMySQL implements ICliente {
             return false;
         }
 
-        String sql = "INSERT INTO Clientes (Nombre, Apellido, Email, Telefono, FechaRegistro) VALUES (?, ?, ?, ?, ?)";
+        String call = "{CALL sp_registrar_cliente(?, ?, ?, ?, ?, ?)}";
+        try (Connection conn = this.Conectar(); CallableStatement cs = conn.prepareCall(call)) {
 
-        try (Connection conn = this.Conectar();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, cliente.getNombre());
-            stmt.setString(2, cliente.getApellido());
-            stmt.setString(3, cliente.getEmail());
-            stmt.setString(4, cliente.getTelefono());
-            stmt.setDate(5, cliente.getFechaRegistro() != null ? java.sql.Date.valueOf(cliente.getFechaRegistro()) : null);
-            return stmt.executeUpdate() > 0;
+            cs.setString(1, cliente.getNombre());
+            cs.setString(2, cliente.getApellido());
+            cs.setString(3, cliente.getEmail());
+            cs.setString(4, cliente.getTelefono());
+            cs.setDate(5, java.sql.Date.valueOf(cliente.getFechaRegistro()));
+            cs.registerOutParameter(6, Types.TINYINT);
+
+            cs.execute();
+            return cs.getByte(6) == 1;
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
@@ -49,7 +52,6 @@ public class CRUDCliente extends ConexionMySQL implements ICliente {
 
     @Override
     public boolean actualizar(Cliente cliente) {
-        // Validaciones
         if (cliente.getNombre() == null || cliente.getNombre().trim().isEmpty()) {
             return false;
         }
@@ -63,17 +65,19 @@ public class CRUDCliente extends ConexionMySQL implements ICliente {
             return false;
         }
 
-        String sql = "UPDATE Clientes SET Nombre=?, Apellido=?, Email=?, Telefono=?, FechaRegistro=? WHERE ID=?";
+        String call = "{CALL sp_actualizar_cliente(?, ?, ?, ?, ?, ?, ?)}";
+        try (Connection conn = this.Conectar(); CallableStatement cs = conn.prepareCall(call)) {
 
-        try (Connection conn = this.Conectar();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, cliente.getNombre());
-            stmt.setString(2, cliente.getApellido());
-            stmt.setString(3, cliente.getEmail());
-            stmt.setString(4, cliente.getTelefono());
-            stmt.setDate(5, cliente.getFechaRegistro() != null ? java.sql.Date.valueOf(cliente.getFechaRegistro()) : null);
-            stmt.setInt(6, cliente.getId());
-            return stmt.executeUpdate() > 0;
+            cs.setInt(1, cliente.getId());
+            cs.setString(2, cliente.getNombre());
+            cs.setString(3, cliente.getApellido());
+            cs.setString(4, cliente.getEmail());
+            cs.setString(5, cliente.getTelefono());
+            cs.setDate(6, java.sql.Date.valueOf(cliente.getFechaRegistro()));
+            cs.registerOutParameter(7, Types.TINYINT);
+
+            cs.execute();
+            return cs.getByte(7) == 1;
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
@@ -82,12 +86,14 @@ public class CRUDCliente extends ConexionMySQL implements ICliente {
 
     @Override
     public boolean eliminar(int id) {
-        String sql = "DELETE FROM Clientes WHERE ID=?";
+        String call = "{CALL sp_eliminar_cliente(?, ?)}";
+        try (Connection conn = this.Conectar(); CallableStatement cs = conn.prepareCall(call)) {
 
-        try (Connection conn = this.Conectar();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            return stmt.executeUpdate() > 0;
+            cs.setInt(1, id);
+            cs.registerOutParameter(2, Types.TINYINT);
+
+            cs.execute();
+            return cs.getByte(2) == 1;
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
@@ -96,12 +102,11 @@ public class CRUDCliente extends ConexionMySQL implements ICliente {
 
     @Override
     public Cliente obtenerPorId(int id) {
-        String sql = "SELECT * FROM Clientes WHERE ID=?";
+        String call = "{CALL sp_obtener_cliente_por_id(?)}";
+        try (Connection conn = this.Conectar(); CallableStatement cs = conn.prepareCall(call)) {
 
-        try (Connection conn = this.Conectar();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            try (ResultSet rs = stmt.executeQuery()) {
+            cs.setInt(1, id);
+            try (ResultSet rs = cs.executeQuery()) {
                 if (rs.next()) {
                     return mapearCliente(rs);
                 }
@@ -114,36 +119,18 @@ public class CRUDCliente extends ConexionMySQL implements ICliente {
 
     @Override
     public Cliente obtenerPorUsuario(String usuario) {
-        // La tabla Clientes no tiene un campo relacionado con usuario
+        // No aplica para clientes
         return null;
     }
 
     @Override
     public List<Cliente> buscarPorNombre(String nombre) {
         List<Cliente> clientes = new ArrayList<>();
-        String sql;
+        String call = "{CALL sp_buscar_cliente_por_nombre(?)}";
+        try (Connection conn = this.Conectar(); CallableStatement cs = conn.prepareCall(call)) {
 
-        if (nombre == null || nombre.trim().isEmpty()) {
-            sql = "SELECT * FROM Clientes";
-            try (Connection conn = this.Conectar();
-                 PreparedStatement stmt = conn.prepareStatement(sql);
-                 ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    clientes.add(mapearCliente(rs));
-                }
-                return clientes;
-            } catch (SQLException e) {
-                e.printStackTrace();
-                return clientes;
-            }
-        }
-
-        sql = "SELECT * FROM Clientes WHERE Nombre LIKE ? OR Apellido LIKE ?";
-        try (Connection conn = this.Conectar();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, "%" + nombre + "%");
-            stmt.setString(2, "%" + nombre + "%");
-            try (ResultSet rs = stmt.executeQuery()) {
+            cs.setString(1, nombre == null ? "" : nombre);
+            try (ResultSet rs = cs.executeQuery()) {
                 while (rs.next()) {
                     clientes.add(mapearCliente(rs));
                 }
@@ -157,11 +144,9 @@ public class CRUDCliente extends ConexionMySQL implements ICliente {
     @Override
     public List<Cliente> obtenerTodos() {
         List<Cliente> clientes = new ArrayList<>();
-        String sql = "SELECT * FROM Clientes";
+        String call = "{CALL sp_obtener_todos_clientes()}";
+        try (Connection conn = this.Conectar(); CallableStatement cs = conn.prepareCall(call); ResultSet rs = cs.executeQuery()) {
 
-        try (Connection conn = this.Conectar();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 clientes.add(mapearCliente(rs));
             }
@@ -178,7 +163,11 @@ public class CRUDCliente extends ConexionMySQL implements ICliente {
         cliente.setApellido(rs.getString("Apellido"));
         cliente.setEmail(rs.getString("Email"));
         cliente.setTelefono(rs.getString("Telefono"));
-        cliente.setFechaRegistro(rs.getDate("FechaRegistro") != null ? rs.getDate("FechaRegistro").toLocalDate() : null);
+        cliente.setFechaRegistro(
+                rs.getDate("FechaRegistro") != null
+                ? rs.getDate("FechaRegistro").toLocalDate()
+                : null
+        );
         return cliente;
     }
 }
