@@ -5,11 +5,16 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class ConexionMySQL {
+
     private static final String CONTROLADOR = "com.mysql.cj.jdbc.Driver";
     private static final String URL = "jdbc:mysql://localhost:3306/CineBD?useSSL=false&serverTimezone=UTC";
-    private static final String USER = "Manzana";
-    private static final String PASSWORD = "Eddye030@";
-    
+    /* Manzanita's config */
+    // private static final String USER = "Manzana";
+    // private static final String PASSWORD = "Eddye030@";
+    /* Lavender's config */
+    private static final String USER = "root";
+    private static final String PASSWORD = "Lavendernara_1";
+
     static {
         try {
             Class.forName(CONTROLADOR);
