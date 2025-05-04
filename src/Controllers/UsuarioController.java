@@ -3,25 +3,21 @@ package Controllers;
 import Models.Usuario;
 import Models.ConexionMySQL;
 import Repository.IRepositorioGET;
+
+import java.sql.CallableStatement;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class UsuarioController extends ConexionMySQL implements IRepositorioGET<Usuario> {
 
-    public UsuarioController() {
-        // No se necesita inicializar nada, ya que se hereda ConexionMySQL
-    }
-
     @Override
     public Usuario obtenerPorUsuario(String usuario) {
-        String sql = "SELECT * FROM Empleados WHERE Usuario=?";
+        String call = "{CALL sp_obtener_empleado_por_usuario(?)}";
+        try (Connection conn = this.Conectar(); CallableStatement cs = conn.prepareCall(call)) {
 
-        try (Connection conn = this.Conectar();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, usuario);
-            try (ResultSet rs = stmt.executeQuery()) {
+            cs.setString(1, usuario);
+            try (ResultSet rs = cs.executeQuery()) {
                 if (rs.next()) {
                     return mapearUsuario(rs);
                 }
@@ -34,12 +30,11 @@ public class UsuarioController extends ConexionMySQL implements IRepositorioGET<
 
     @Override
     public Usuario obtenerPorId(int id) {
-        String sql = "SELECT * FROM Empleados WHERE id=?";
+        String call = "{CALL sp_obtener_empleado_por_id(?)}";
+        try (Connection conn = this.Conectar(); CallableStatement cs = conn.prepareCall(call)) {
 
-        try (Connection conn = this.Conectar();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, id);
-            try (ResultSet rs = stmt.executeQuery()) {
+            cs.setInt(1, id);
+            try (ResultSet rs = cs.executeQuery()) {
                 if (rs.next()) {
                     return mapearUsuario(rs);
                 }
@@ -51,11 +46,12 @@ public class UsuarioController extends ConexionMySQL implements IRepositorioGET<
     }
 
     public Usuario login(String usuario, String contraseña) {
-        if (usuario == null || usuario.trim().isEmpty() || contraseña == null || contraseña.trim().isEmpty()) {
+        if (usuario == null || usuario.trim().isEmpty()
+                || contraseña == null || contraseña.trim().isEmpty()) {
             return null;
         }
         Usuario u = obtenerPorUsuario(usuario);
-        if (u != null && u.getContraseña().equals(contraseña)) {
+        if (u != null && contraseña.equals(u.getContraseña())) {
             return u;
         }
         return null;
@@ -63,16 +59,18 @@ public class UsuarioController extends ConexionMySQL implements IRepositorioGET<
 
     private Usuario mapearUsuario(ResultSet rs) throws SQLException {
         return new Usuario(
-            rs.getInt("id"),
-            rs.getString("Usuario"),
-            rs.getString("Contraseña"),
-            rs.getString("Nombre"),
-            rs.getString("Apellido"),
-            rs.getString("Email"),
-            rs.getString("Telefono"),
-            rs.getString("FechaContratacion"),
-            rs.getString("Direccion"),
-            rs.getInt("RolId")
+                rs.getInt("ID"),
+                rs.getString("Usuario"),
+                rs.getString("Contrasena"),
+                rs.getString("Nombre"),
+                rs.getString("Apellido"),
+                rs.getString("Email"),
+                rs.getString("Telefono"),
+                rs.getDate("FechaContratacion") != null
+                ? rs.getDate("FechaContratacion").toString()
+                : "",
+                rs.getString("Direccion"),
+                rs.getInt("RolID")
         );
     }
 }
