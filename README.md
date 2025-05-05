@@ -4,7 +4,7 @@ Sistema Cine es una aplicación de escritorio desarrollada en Java que permite l
 
 ## 🧑‍💻 Autores
 
-* **Eddye Alessandro Mejía**
+* **Eddye A. Mejia Neyra**
 * **Juan S. Pimentel Lalangui**
 * **Andriy L. Pastrana Cajavilca**
 
