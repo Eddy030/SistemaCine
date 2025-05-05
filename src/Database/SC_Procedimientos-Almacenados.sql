@@ -733,9 +733,10 @@ BEGIN
     SET p_exists = IF(@cnt > 0, 1, 0);
 END$$
 
--- 1. Borrar si ya existía
+-- -----------------------------------------------------
+-- PROCEDIMIENTOS PARA LA TABLA Entrada
+-- -----------------------------------------------------
 DROP PROCEDURE IF EXISTS sp_insertarEntrada$$
--- 2. Crear INSERT
 CREATE PROCEDURE sp_insertarEntrada(
     IN p_FuncionID       INT,
     IN p_ClienteID       INT,
@@ -755,7 +756,6 @@ BEGIN
     SELECT LAST_INSERT_ID() AS ID;
 END$$
 
--- 3. Borrar y crear UPDATE
 DROP PROCEDURE IF EXISTS sp_actualizarEntrada$$
 CREATE PROCEDURE sp_actualizarEntrada(
     IN p_ID               INT,
@@ -780,7 +780,6 @@ BEGIN
     WHERE ID = p_ID;
 END$$
 
--- 4. Borrar y crear DELETE
 DROP PROCEDURE IF EXISTS sp_eliminarEntrada$$
 CREATE PROCEDURE sp_eliminarEntrada(IN p_ID INT)
 BEGIN
@@ -808,27 +807,29 @@ BEGIN
     ORDER BY e.FechaVenta DESC;
 END$$
 
-
 DROP PROCEDURE IF EXISTS sp_obtenerEntradaPorIdDetallado$$
 CREATE PROCEDURE sp_obtenerEntradaPorIdDetallado(
     IN p_ID INT
 )
 BEGIN
     SELECT 
-        e.ID,
-        p.Titulo             AS Pelicula,
+        e.ID                              AS EntradaID,
+        p.Titulo                          AS Pelicula,
+        c.ID                              AS ClienteID,
         CONCAT(c.Nombre, ' ', c.Apellido) AS Cliente,
+        pe.ID							  AS PrecioEntradaID,
         CONCAT(pe.Precio, ' (', pe.Nombre, ')') AS PrecioCategoria,
+        f.ID                              AS FuncionID,
         e.NumeroFila,
         e.NumeroAsiento,
         e.FechaVenta,
         e.Estado
     FROM Entradas e
-    JOIN Funciones f            ON e.FuncionID       = f.ID
-    JOIN Peliculas p            ON f.PeliculaID      = p.ID
-    JOIN Clientes c             ON e.ClienteID       = c.ID
-    JOIN PrecioEntradas pe      ON e.PrecioEntradaID = pe.ID
+    JOIN Funciones f        ON e.FuncionID       = f.ID
+    JOIN Peliculas p        ON f.PeliculaID      = p.ID
+    JOIN Clientes c         ON e.ClienteID       = c.ID
+    JOIN PrecioEntradas pe  ON e.PrecioEntradaID = pe.ID
     WHERE e.ID = p_ID;
 END$$
--- Fin de la sección de Entradas
+
 DELIMITER ;
