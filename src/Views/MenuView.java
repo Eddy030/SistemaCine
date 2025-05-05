@@ -45,6 +45,7 @@ public class MenuView extends JFrame {
     private JFrame peliculaFrame = null;
     private JFrame funcionesFrame = null;
     private JFrame entradaFrame = null;
+    private JFrame ventasFrame = null;
 
     class MainPanel extends JPanel {
 
@@ -222,6 +223,29 @@ public class MenuView extends JFrame {
                 }
             });
             empleadosFrame.setVisible(true);
+        });
+
+        btnNuevaVenta.addActionListener(e -> {
+            if (ventasFrame != null && ventasFrame.isVisible()) {
+                ventasFrame.toFront();
+                return;
+            }
+            ventasFrame = new JFrame("Nueva Venta");
+            ventasFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            ventasFrame.setSize(820, 640);
+            ventasFrame.setLocationRelativeTo(null);
+            ventasFrame.setResizable(false);
+            Icono.establecerIcono(ventasFrame);
+            JDesktopPane desktopPane = new JDesktopPane();
+            ventasFrame.setContentPane(desktopPane);
+            new VentaView(desktopPane, ventasFrame, empleadoLogueado.getId()).setVisible(true);
+            ventasFrame.addWindowListener(new java.awt.event.WindowAdapter() {
+                @Override
+                public void windowClosed(java.awt.event.WindowEvent e) {
+                    ventasFrame = null;
+                }
+            });
+            ventasFrame.setVisible(true);
         });
 
         btnClientes.addActionListener(e -> {

@@ -807,6 +807,7 @@ BEGIN
     ORDER BY e.FechaVenta DESC;
 END$$
 
+
 DROP PROCEDURE IF EXISTS sp_obtenerEntradaPorIdDetallado$$
 CREATE PROCEDURE sp_obtenerEntradaPorIdDetallado(
     IN p_ID INT
@@ -831,5 +832,112 @@ BEGIN
     JOIN PrecioEntradas pe  ON e.PrecioEntradaID = pe.ID
     WHERE e.ID = p_ID;
 END$$
+
+DROP PROCEDURE IF EXISTS RegistrarVenta$$
+CREATE PROCEDURE RegistrarVenta(
+    IN p_EmpleadoID INT,
+    IN p_FechaHora DATETIME,
+    IN p_TipoVenta VARCHAR(50),
+    IN p_MetodoPago VARCHAR(50),
+    IN p_PrecioTotal DECIMAL(8,2),
+    OUT p_VentaID INT
+)
+BEGIN
+    INSERT INTO Ventas (EmpleadoID, FechaHora, TipoVenta, MetodoPago, PrecioTotal)
+    VALUES (p_EmpleadoID, p_FechaHora, p_TipoVenta, p_MetodoPago, p_PrecioTotal);
+    SET p_VentaID = LAST_INSERT_ID();
+END$$
+
+DROP PROCEDURE IF EXISTS RegistrarDetalleVenta$$
+CREATE PROCEDURE RegistrarDetalleVenta(
+    IN p_VentaID INT,
+    IN p_ProductoID INT,
+    IN p_Cantidad INT,
+    IN p_PrecioUnitario DECIMAL(8,2),
+    IN p_Descuento DECIMAL(5,2)
+)
+BEGIN
+    INSERT INTO DetallesVenta (VentaID, ProductoID, Cantidad, PrecioUnitarioVenta, Descuento)
+    VALUES (p_VentaID, p_ProductoID, p_Cantidad, p_PrecioUnitario, p_Descuento);
+    
+    UPDATE Productos
+    SET Stock = Stock - p_Cantidad
+    WHERE ID = p_ProductoID AND Stock >= p_Cantidad;
+END$$ 
+
+DROP PROCEDURE IF EXISTS RegistrarEntrada$$
+CREATE PROCEDURE RegistrarEntrada(
+    IN p_FuncionID INT,
+    IN p_ClienteID INT,
+    IN p_PrecioEntradaID INT,
+    IN p_NumeroFila VARCHAR(10),
+    IN p_NumeroAsiento INT,
+    IN p_FechaVenta DATETIME,
+    OUT p_Success BOOLEAN
+)
+BEGIN
+    DECLARE asientoOcupado INT;
+    
+    -- Verificar si el asiento está disponible
+    SELECT COUNT(*) INTO asientoOcupado
+    FROM Entradas
+    WHERE FuncionID = p_FuncionID AND NumeroFila = p_NumeroFila AND NumeroAsiento = p_NumeroAsiento AND Estado != 'Cancelada';
+    
+    IF asientoOcupado = 0 THEN
+        INSERT INTO Entradas (FuncionID, ClienteID, PrecioEntradaID, NumeroFila, NumeroAsiento, FechaVenta, Estado)
+        VALUES (p_FuncionID, p_ClienteID, p_PrecioEntradaID, p_NumeroFila, p_NumeroAsiento, p_FechaVenta, 'Vendida');
+        SET p_Success = TRUE;
+    ELSE
+        SET p_Success = FALSE;
+    END IF;
+END$$ 
+
+DROP PROCEDURE IF EXISTS ObtenerFuncionesDisponibles$$
+CREATE PROCEDURE ObtenerFuncionesDisponibles()
+BEGIN
+    SELECT f.ID, p.Titulo, s.Numero AS Sala, f.FechaHora, f.PrecioBase, f.Formato
+    FROM Funciones f
+    JOIN Peliculas p ON f.PeliculaID = p.ID
+    JOIN Salas s ON f.SalaID = s.ID
+    WHERE f.Estado = 'Programada'
+    AND f.ID NOT IN (
+        SELECT DISTINCT FuncionID
+        FROM Entradas
+        WHERE Estado = 'Vendida'
+        GROUP BY FuncionID
+        HAVING COUNT(*) >= (SELECT Capacidad FROM Salas WHERE ID = f.SalaID)
+    );
+END$$
+
+DROP PROCEDURE IF EXISTS ObtenerProductosDisponibles$$
+CREATE PROCEDURE ObtenerProductosDisponibles()
+BEGIN
+    SELECT ID, Nombre, Descripcion, PrecioUnitario, Stock
+    FROM Productos
+    WHERE Stock > 0;
+END$$
+
+
+DROP PROCEDURE IF EXISTS RestaurarStock$$
+CREATE PROCEDURE RestaurarStock(
+    IN p_VentaID INT
+)
+BEGIN
+    -- Restaurar el stock basado en los detalles de venta antes de eliminarlos
+    UPDATE Productos p
+    JOIN DetallesVenta dv ON p.ID = dv.ProductoID
+    SET p.Stock = p.Stock + dv.Cantidad
+    WHERE dv.VentaID = p_VentaID;
+END $$
+
+DROP PROCEDURE IF EXISTS CancelarEntradas$$
+CREATE PROCEDURE CancelarEntradas(
+    IN p_VentaID INT
+)
+BEGIN
+    UPDATE Entradas
+    SET Estado = 'Cancelada'
+    WHERE VentaID = p_VentaID AND Estado = 'Vendida';
+END $$
 
 DELIMITER ;

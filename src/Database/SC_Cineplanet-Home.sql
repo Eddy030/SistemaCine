@@ -99,9 +99,11 @@ CREATE TABLE Entradas (
     NumeroAsiento INT,
     FechaVenta DATETIME,
     Estado VARCHAR(20), -- (Vendida, Reservada, Usada, Cancelada)
+    VentaID INT,
     FOREIGN KEY (FuncionID) REFERENCES Funciones(ID),
     FOREIGN KEY (ClienteID) REFERENCES Clientes(ID),
     FOREIGN KEY (PrecioEntradaID) REFERENCES PrecioEntradas(ID),
+    FOREIGN KEY (VentaID) REFERENCES Ventas(ID),
     UNIQUE (FuncionID, NumeroFila, NumeroAsiento) -- Asegurar asiento único por función
 );
 
