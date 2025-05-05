@@ -733,4 +733,102 @@ BEGIN
     SET p_exists = IF(@cnt > 0, 1, 0);
 END$$
 
+-- 1. Borrar si ya existía
+DROP PROCEDURE IF EXISTS sp_insertarEntrada$$
+-- 2. Crear INSERT
+CREATE PROCEDURE sp_insertarEntrada(
+    IN p_FuncionID       INT,
+    IN p_ClienteID       INT,
+    IN p_PrecioEntradaID INT,
+    IN p_NumeroFila      VARCHAR(10),
+    IN p_NumeroAsiento   INT,
+    IN p_FechaVenta      DATETIME,
+    IN p_Estado          VARCHAR(20)
+)
+BEGIN
+    INSERT INTO Entradas
+      (FuncionID, ClienteID, PrecioEntradaID,
+       NumeroFila, NumeroAsiento, FechaVenta, Estado)
+    VALUES
+      (p_FuncionID, p_ClienteID, p_PrecioEntradaID,
+       p_NumeroFila, p_NumeroAsiento, p_FechaVenta, p_Estado);
+    SELECT LAST_INSERT_ID() AS ID;
+END$$
+
+-- 3. Borrar y crear UPDATE
+DROP PROCEDURE IF EXISTS sp_actualizarEntrada$$
+CREATE PROCEDURE sp_actualizarEntrada(
+    IN p_ID               INT,
+    IN p_FuncionID        INT,
+    IN p_ClienteID        INT,
+    IN p_PrecioEntradaID  INT,
+    IN p_NumeroFila       VARCHAR(10),
+    IN p_NumeroAsiento    INT,
+    IN p_FechaVenta       DATETIME,
+    IN p_Estado           VARCHAR(20)
+)
+BEGIN
+    UPDATE Entradas
+    SET
+      FuncionID       = p_FuncionID,
+      ClienteID       = p_ClienteID,
+      PrecioEntradaID = p_PrecioEntradaID,
+      NumeroFila      = p_NumeroFila,
+      NumeroAsiento   = p_NumeroAsiento,
+      FechaVenta      = p_FechaVenta,
+      Estado          = p_Estado
+    WHERE ID = p_ID;
+END$$
+
+-- 4. Borrar y crear DELETE
+DROP PROCEDURE IF EXISTS sp_eliminarEntrada$$
+CREATE PROCEDURE sp_eliminarEntrada(IN p_ID INT)
+BEGIN
+    DELETE FROM Entradas
+    WHERE ID = p_ID;
+END$$
+
+DROP PROCEDURE IF EXISTS sp_listarEntradasDetallado$$
+CREATE PROCEDURE sp_listarEntradasDetallado()
+BEGIN
+    SELECT 
+        e.ID,
+        p.Titulo             AS Pelicula,
+        CONCAT(c.Nombre, ' ', c.Apellido) AS Cliente,
+        CONCAT(pe.Precio, ' (', pe.Nombre, ')') AS PrecioCategoria,
+        e.NumeroFila,
+        e.NumeroAsiento,
+        e.FechaVenta,
+        e.Estado
+    FROM Entradas e
+    JOIN Funciones f            ON e.FuncionID       = f.ID
+    JOIN Peliculas p            ON f.PeliculaID      = p.ID
+    JOIN Clientes c             ON e.ClienteID       = c.ID
+    JOIN PrecioEntradas pe      ON e.PrecioEntradaID = pe.ID
+    ORDER BY e.FechaVenta DESC;
+END$$
+
+
+DROP PROCEDURE IF EXISTS sp_obtenerEntradaPorIdDetallado$$
+CREATE PROCEDURE sp_obtenerEntradaPorIdDetallado(
+    IN p_ID INT
+)
+BEGIN
+    SELECT 
+        e.ID,
+        p.Titulo             AS Pelicula,
+        CONCAT(c.Nombre, ' ', c.Apellido) AS Cliente,
+        CONCAT(pe.Precio, ' (', pe.Nombre, ')') AS PrecioCategoria,
+        e.NumeroFila,
+        e.NumeroAsiento,
+        e.FechaVenta,
+        e.Estado
+    FROM Entradas e
+    JOIN Funciones f            ON e.FuncionID       = f.ID
+    JOIN Peliculas p            ON f.PeliculaID      = p.ID
+    JOIN Clientes c             ON e.ClienteID       = c.ID
+    JOIN PrecioEntradas pe      ON e.PrecioEntradaID = pe.ID
+    WHERE e.ID = p_ID;
+END$$
+-- Fin de la sección de Entradas
 DELIMITER ;

@@ -23,6 +23,7 @@ import javax.swing.JDesktopPane;
 import javax.swing.SwingConstants;
 
 public class MenuView extends JFrame {
+
     private static final Logger LOGGER = Logger.getLogger(MenuView.class.getName());
     private JPanel contentPane;
     private JLabel userIconLabel;
@@ -43,8 +44,10 @@ public class MenuView extends JFrame {
     private JFrame empleadosFrame = null;
     private JFrame peliculaFrame = null;
     private JFrame funcionesFrame = null;
+    private JFrame entradaFrame = null;
 
     class MainPanel extends JPanel {
+
         private Image backgroundImage;
 
         public MainPanel(String backgroundPath) {
@@ -69,6 +72,7 @@ public class MenuView extends JFrame {
     }
 
     class LogoPanel extends JPanel {
+
         private Image logoImage;
         private int targetWidth = 210;  // Dimensiones del nuevo logo
         private int targetHeight = 153;
@@ -310,6 +314,29 @@ public class MenuView extends JFrame {
                 }
             });
             funcionesFrame.setVisible(true);
+        });
+
+        btnCrearEntrada.addActionListener(e -> {
+            if (entradaFrame != null && entradaFrame.isVisible()) {
+                entradaFrame.toFront();
+                return;
+            }
+            entradaFrame = new JFrame("Gestión de Entradas");
+            entradaFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            entradaFrame.setSize(820, 640);
+            entradaFrame.setLocationRelativeTo(null);
+            entradaFrame.setResizable(false);
+            Icono.establecerIcono(entradaFrame);
+            JDesktopPane desktopPane = new JDesktopPane();
+            entradaFrame.setContentPane(desktopPane);
+            new EntradaView(desktopPane, entradaFrame).setVisible(true);
+            entradaFrame.addWindowListener(new java.awt.event.WindowAdapter() {
+                @Override
+                public void windowClosed(java.awt.event.WindowEvent e) {
+                    entradaFrame = null;
+                }
+            });
+            entradaFrame.setVisible(true);
         });
 
         btnCerrarSesion.addActionListener(e -> {
