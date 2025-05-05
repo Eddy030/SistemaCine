@@ -7,18 +7,21 @@ import java.sql.SQLException;
 public class ConexionMySQL {
 
     private static final String CONTROLADOR = "com.mysql.cj.jdbc.Driver";
-    /*private static final String URL = "jdbc:mysql://localhost:3306/CineBD?useSSL=false&serverTimezone=UTC";/*
+
+    private static final String URL = "jdbc:mysql://localhost:3306/CineBD?useSSL=false&serverTimezone=UTC";
+
     /* Manzanita's config */
     // private static final String USER = "Manzana";
     // private static final String PASSWORD = "Eddye030@";
+    
     /* Lavender's config */
-    /*private static final String USER = "root";
-    private static final String PASSWORD = "Lavendernara_1";*/
-    /*andriy config*/
-    private static final String URL = "jdbc:mysql://localhost:3307/CineBD?serverTimezone=UTC";
     private static final String USER = "root";
-    private static final String PASSWORD = "lioymiku123";
+    private static final String PASSWORD = "Lavendernara_1";
 
+    /* Andriy's config */
+    // private static final String URL = "jdbc:mysql://localhost:3307/CineBD?serverTimezone=UTC";
+    // private static final String USER = "root";
+    // private static final String PASSWORD = "lioymiku123";
     static {
         try {
             Class.forName(CONTROLADOR);

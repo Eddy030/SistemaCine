@@ -22,17 +22,19 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 
 public class EntradaView extends JInternalFrame {
-    private JPanel mainPanel;
-    private CRUDEntrada controlador;
-    private JTable tablaEntradas;
-    private DefaultTableModel modeloTabla;
-    private JButton btnAgregar, btnActualizar, btnEliminar, btnVolver, btnBuscar;
-    private LogoPanel logoPanel;
+
+    private final JPanel mainPanel;
+    private final CRUDEntrada controlador;
+    private final JTable tablaEntradas;
+    private final DefaultTableModel modeloTabla;
+    private final JButton btnAgregar, btnActualizar, btnEliminar, btnVolver, btnBuscar;
+    private final LogoPanel logoPanel;
     private JFrame parentFrame;
-    private JDesktopPane desktop;
-    private JTextField txtBuscar;
+    private final JDesktopPane desktop;
+    private final JTextField txtBuscar;
 
     class MainPanel extends JPanel {
+
         private Image backgroundImage;
 
         public MainPanel(String backgroundPath) {
@@ -58,6 +60,7 @@ public class EntradaView extends JInternalFrame {
     }
 
     class LogoPanel extends JPanel {
+
         private Image logoImage;
 
         public LogoPanel(String logoPath) {

@@ -2,12 +2,8 @@ package Models;
 
 import java.util.Date;
 
-/**
- * Modelo para la entidad Entrada.
- * Representa la tabla `Entradas` y coincide con los procedimientos almacenados sp_insertarEntrada,
- * sp_actualizarEntrada, sp_listarEntradasDetallado y sp_obtenerEntradaPorIdDetallado.
- */
 public class Entrada {
+
     private int id;
     private int funcionID;
     private int clienteID;
@@ -17,17 +13,11 @@ public class Entrada {
     private Date fechaVenta;
     private String estado;
 
-    /**
-     * Constructor vacío.
-     */
-    public Entrada() {}
+    public Entrada() {
+    }
 
-    /**
-     * Constructor con todos los campos.
-     */
-    
     public Entrada(int id, int funcionID, int clienteID, int precioEntradaID,
-                   String numeroFila, int numeroAsiento, Date fechaVenta, String estado) {
+            String numeroFila, int numeroAsiento, Date fechaVenta, String estado) {
         this.id = id;
         this.funcionID = funcionID;
         this.clienteID = clienteID;
@@ -105,15 +95,15 @@ public class Entrada {
 
     @Override
     public String toString() {
-        return "Entrada{" +
-               "id=" + id +
-               ", funcionID=" + funcionID +
-               ", clienteID=" + clienteID +
-               ", precioEntradaID=" + precioEntradaID +
-               ", numeroFila='" + numeroFila + '\'' +
-               ", numeroAsiento=" + numeroAsiento +
-               ", fechaVenta=" + fechaVenta +
-               ", estado='" + estado + '\'' +
-               '}';
+        return "Entrada{"
+                + "id=" + id
+                + ", funcionID=" + funcionID
+                + ", clienteID=" + clienteID
+                + ", precioEntradaID=" + precioEntradaID
+                + ", numeroFila='" + numeroFila + '\''
+                + ", numeroAsiento=" + numeroAsiento
+                + ", fechaVenta=" + fechaVenta
+                + ", estado='" + estado + '\''
+                + '}';
     }
 }

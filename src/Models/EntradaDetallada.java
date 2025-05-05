@@ -3,32 +3,36 @@ package Models;
 import java.util.Date;
 
 public class EntradaDetallada {
+
     private int id;
     private String pelicula;
+    private int clienteID;
     private String cliente;
+    private int precioEntradaID;
     private String precioCategoria;
+    private int funcionID;
     private String numeroFila;
     private int numeroAsiento;
     private Date fechaVenta;
     private String estado;
 
-    // Constructor, getters y setters
-
     public EntradaDetallada() {
     }
 
-    public EntradaDetallada(int id, String pelicula, String cliente, String precioCategoria, String numeroFila, int numeroAsiento, Date fechaVenta, String estado) {
+    public EntradaDetallada(int id, String pelicula, int clienteID, String cliente, int precioEntradaID, String precioCategoria, int funcionID, String numeroFila, int numeroAsiento, Date fechaVenta, String estado) {
         this.id = id;
         this.pelicula = pelicula;
+        this.clienteID = clienteID;
         this.cliente = cliente;
+        this.precioEntradaID = precioEntradaID;
         this.precioCategoria = precioCategoria;
+        this.funcionID = funcionID;
         this.numeroFila = numeroFila;
         this.numeroAsiento = numeroAsiento;
         this.fechaVenta = fechaVenta;
         this.estado = estado;
     }
- 
-    // Getters y Setters
+
     public int getId() {
         return id;
     }
@@ -45,6 +49,14 @@ public class EntradaDetallada {
         this.pelicula = pelicula;
     }
 
+    public int getClienteID() {
+        return clienteID;
+    }
+
+    public void setClienteID(int clienteID) {
+        this.clienteID = clienteID;
+    }
+
     public String getCliente() {
         return cliente;
     }
@@ -53,12 +65,28 @@ public class EntradaDetallada {
         this.cliente = cliente;
     }
 
+    public int getPrecioEntradaID() {
+        return precioEntradaID;
+    }
+
+    public void setPrecioEntradaID(int precioEntradaID) {
+        this.precioEntradaID = precioEntradaID;
+    }
+
     public String getPrecioCategoria() {
         return precioCategoria;
     }
 
     public void setPrecioCategoria(String precioCategoria) {
         this.precioCategoria = precioCategoria;
+    }
+
+    public int getFuncionID() {
+        return funcionID;
+    }
+
+    public void setFuncionID(int funcionID) {
+        this.funcionID = funcionID;
     }
 
     public String getNumeroFila() {
@@ -92,5 +120,9 @@ public class EntradaDetallada {
     public void setEstado(String estado) {
         this.estado = estado;
     }
-    
+
+    @Override
+    public String toString() {
+        return "EntradaDetallada{" + "id=" + id + ", pelicula=" + pelicula + ", clienteID=" + clienteID + ", cliente=" + cliente + ", precioCategoria=" + precioCategoria + ", funcionID=" + funcionID + ", numeroFila=" + numeroFila + ", numeroAsiento=" + numeroAsiento + ", fechaVenta=" + fechaVenta + ", estado=" + estado + '}';
+    }
 }

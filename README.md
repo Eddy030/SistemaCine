@@ -109,7 +109,7 @@ Los scripts SQL se encuentran en la carpeta `src/database/` e incluyen:
 
 * `SC_Cineplanet-Home.sql`: Crea la base de datos `CineBD y sus tablas`.
 * `SC_Inserciones.sql`: Inserta datos de ejemplo en las tablas.
-* `insertar_datos.sql`: Crea los procedimientos de almacenado necesarios.
+* `SC_Procedimientos-Almacenados.sql`: Crea los procedimientos de almacenado necesarios.
 
 ## 📝 Licencia
 
