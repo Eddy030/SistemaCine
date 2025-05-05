@@ -4,17 +4,35 @@ import Controllers.CRUDVenta;
 import Models.Venta;
 import Models.Funcion;
 import Models.Producto;
-import javax.swing.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Image;
 import javax.swing.table.DefaultTableModel;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.Statement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDesktopPane;
+import javax.swing.JFrame;
+import javax.swing.JInternalFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
 
 public class VentaView extends JInternalFrame {
-
     private JPanel mainPanel;
     private JComboBox<String> comboClientes;
     private JComboBox<String> comboFunciones;
@@ -37,7 +55,6 @@ public class VentaView extends JInternalFrame {
     private int empleadoId;
 
     class MainPanel extends JPanel {
-
         private Image backgroundImage;
 
         public MainPanel(String backgroundPath) {
@@ -63,7 +80,6 @@ public class VentaView extends JInternalFrame {
     }
 
     class LogoPanel extends JPanel {
-
         private Image logoImage;
 
         public LogoPanel(String logoPath) {
@@ -141,6 +157,7 @@ public class VentaView extends JInternalFrame {
         mainPanel.add(lblCliente);
 
         comboClientes = new JComboBox<>();
+        comboClientes.addItem("Seleccione un cliente");
         cargarClientes();
         comboClientes.setBounds(150, 160, 200, 25);
         comboClientes.setOpaque(true);
@@ -162,9 +179,12 @@ public class VentaView extends JInternalFrame {
 
         List<Funcion> funciones = controlador.obtenerFuncionesDisponibles();
         String[] funcionItems = funciones.stream()
-                .map(f -> "F" + f.getId() + " - " + f.getTituloPelicula() + " (Sala " + f.getSalaId() + ", " + f.getFechaHora() + ")")
-                .toArray(String[]::new);
-        comboFunciones = new JComboBox<>(funcionItems);
+            .map(f -> "F" + f.getId() + " - " + f.getTituloPelicula() + " (Sala " + f.getSalaId() + ", " + f.getFechaHora() + ")")
+            .toArray(String[]::new);
+        comboFunciones = new JComboBox<>(new String[]{"Seleccione una función"});
+        for (String item : funcionItems) {
+            comboFunciones.addItem(item);
+        }
         comboFunciones.setBounds(150, 200, 400, 25);
         comboFunciones.setOpaque(true);
         comboFunciones.setBackground(new Color(255, 255, 255, 230));
@@ -177,7 +197,12 @@ public class VentaView extends JInternalFrame {
         mainPanel.add(lblTipoEntrada);
 
         List<String> tiposEntrada = controlador.obtenerTiposEntrada();
-        comboTiposEntrada = new JComboBox<>(tiposEntrada.toArray(new String[0]));
+        comboTiposEntrada = new JComboBox<>(new String[]{"Seleccione una entrada"});
+        for (String tipo : tiposEntrada) {
+            String[] partes = tipo.split(" - ");
+            String nombrePrecio = partes[1];
+            comboTiposEntrada.addItem(nombrePrecio);
+        }
         comboTiposEntrada.setBounds(150, 240, 200, 25);
         comboTiposEntrada.setOpaque(true);
         comboTiposEntrada.setBackground(new Color(255, 255, 255, 230));
@@ -202,10 +227,10 @@ public class VentaView extends JInternalFrame {
         mainPanel.add(lblAsiento);
 
         txtAsiento = new JTextField("1");
-        txtAsiento.setBounds(280, 280, 100, 25); // Increased width to 100 for better visibility
+        txtAsiento.setBounds(280, 280, 100, 25);
         txtAsiento.setOpaque(true);
-        txtAsiento.setBackground(new Color(255, 255, 255, 255));
-        txtAsiento.setBorder(BorderFactory.createLineBorder(Color.BLACK)); // Added border for better visibility
+        txtAsiento.setBackground(new Color(255, 251, 255, 255));
+        txtAsiento.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         mainPanel.add(txtAsiento);
 
         JLabel lblMetodoPago = new JLabel("Método de Pago:");
@@ -214,7 +239,7 @@ public class VentaView extends JInternalFrame {
         lblMetodoPago.setBackground(new Color(255, 255, 255, 200));
         mainPanel.add(lblMetodoPago);
 
-        comboMetodoPago = new JComboBox<>(new String[]{"Efectivo", "Tarjeta de Crédito", "Tarjeta de Débito"});
+        comboMetodoPago = new JComboBox<>(new String[]{"Seleccione un pago", "Efectivo", "Tarjeta de Crédito", "Tarjeta de Débito"});
         comboMetodoPago.setBounds(150, 320, 200, 25);
         comboMetodoPago.setOpaque(true);
         comboMetodoPago.setBackground(new Color(255, 255, 255, 230));
@@ -230,8 +255,8 @@ public class VentaView extends JInternalFrame {
         txtPrecioTotal.setBounds(150, 360, 200, 25);
         txtPrecioTotal.setEditable(false);
         txtPrecioTotal.setOpaque(true);
-        txtPrecioTotal.setBackground(new Color(255, 255, 255, 255)); // Fully opaque background
-        txtPrecioTotal.setBorder(BorderFactory.createLineBorder(Color.BLACK)); // Added border for better visibility
+        txtPrecioTotal.setBackground(new Color(255, 255, 255, 255));
+        txtPrecioTotal.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         mainPanel.add(txtPrecioTotal);
 
         JLabel lblProductos = new JLabel("Productos (Opcional):");
@@ -281,7 +306,7 @@ public class VentaView extends JInternalFrame {
 
         desktop.add(this);
         setVisible(true);
-
+        
         btnVolver.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -295,14 +320,16 @@ public class VentaView extends JInternalFrame {
 
     private void cargarClientes() {
         String sql = "SELECT ID, Nombre, Apellido FROM Clientes";
-        try (Connection conn = new CRUDVenta().Conectar(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
-            comboClientes.removeAllItems(); // Limpiar antes de cargar
-            comboClientes.addItem("Sin cliente (0)");
+        try (Connection conn = new CRUDVenta().Conectar();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            comboClientes.removeAllItems();
+            comboClientes.addItem("Seleccione un cliente");
             while (rs.next()) {
                 int id = rs.getInt("ID");
                 String nombre = rs.getString("Nombre");
                 String apellido = rs.getString("Apellido");
-                comboClientes.addItem(nombre + " " + apellido + " (" + id + ")");
+                comboClientes.addItem(nombre + " " + apellido);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -313,9 +340,10 @@ public class VentaView extends JInternalFrame {
     private void cargarFunciones() {
         List<Funcion> funciones = controlador.obtenerFuncionesDisponibles();
         String[] funcionItems = funciones.stream()
-                .map(f -> "F" + f.getId() + " - " + f.getTituloPelicula() + " (Sala " + f.getSalaId() + ", " + f.getFechaHora() + ")")
-                .toArray(String[]::new);
+            .map(f -> "F" + f.getId() + " - " + f.getTituloPelicula() + " (Sala " + f.getSalaId() + ", " + f.getFechaHora() + ")")
+            .toArray(String[]::new);
         comboFunciones.removeAllItems();
+        comboFunciones.addItem("Seleccione una función");
         for (String item : funcionItems) {
             comboFunciones.addItem(item);
         }
@@ -324,42 +352,37 @@ public class VentaView extends JInternalFrame {
     private void cargarTiposEntrada() {
         List<String> tiposEntrada = controlador.obtenerTiposEntrada();
         comboTiposEntrada.removeAllItems();
+        comboTiposEntrada.addItem("Seleccione una entrada");
         for (String tipo : tiposEntrada) {
-            comboTiposEntrada.addItem(tipo);
+            String[] partes = tipo.split(" - ");
+            String nombrePrecio = partes[1];
+            comboTiposEntrada.addItem(nombrePrecio);
         }
     }
 
     private void reiniciarFormulario() {
-        // Reiniciar combo de clientes
         cargarClientes();
-        comboClientes.setSelectedIndex(0); // Seleccionar "Sin cliente (0)"
+        comboClientes.setSelectedIndex(0);
 
-        // Reiniciar combo de funciones
         cargarFunciones();
         if (comboFunciones.getItemCount() > 0) {
             comboFunciones.setSelectedIndex(0);
         }
 
-        // Reiniciar combo de tipos de entrada
         cargarTiposEntrada();
         if (comboTiposEntrada.getItemCount() > 0) {
             comboTiposEntrada.setSelectedIndex(0);
         }
 
-        // Reiniciar campos de fila y asiento
         txtFila.setText("A");
         txtAsiento.setText("1");
 
-        // Reiniciar método de pago
-        comboMetodoPago.setSelectedIndex(0); // Seleccionar "Efectivo"
+        comboMetodoPago.setSelectedIndex(0);
 
-        // Limpiar tabla de productos
         productosTableModel.setRowCount(0);
 
-        // Reiniciar precio total
         txtPrecioTotal.setText("0.00");
 
-        // Recalcular precio total (esto también manejará el precio inicial de la entrada)
         calcularPrecioTotal();
     }
 
@@ -389,7 +412,8 @@ public class VentaView extends JInternalFrame {
             }
 
             String sql = "INSERT INTO Clientes (Nombre, Apellido, Email, Telefono, FechaRegistro) VALUES (?, ?, ?, ?, CURDATE())";
-            try (Connection conn = new CRUDVenta().Conectar(); PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            try (Connection conn = new CRUDVenta().Conectar();
+                 PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
                 stmt.setString(1, nombre);
                 stmt.setString(2, apellido);
                 stmt.setString(3, email);
@@ -399,8 +423,8 @@ public class VentaView extends JInternalFrame {
                     ResultSet rs = stmt.getGeneratedKeys();
                     if (rs.next()) {
                         int nuevoId = rs.getInt(1);
-                        comboClientes.addItem(nombre + " " + apellido + " (" + nuevoId + ")");
-                        comboClientes.setSelectedItem(nombre + " " + apellido + " (" + nuevoId + ")");
+                        comboClientes.addItem(nombre + " " + apellido);
+                        comboClientes.setSelectedItem(nombre + " " + apellido);
                         JOptionPane.showMessageDialog(this, "Cliente registrado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
                     }
                     rs.close();
@@ -435,8 +459,8 @@ public class VentaView extends JInternalFrame {
                 return;
             }
             String cantidadStr = JOptionPane.showInputDialog(this, "Ingrese cantidad:", "1");
-            if (cantidadStr == null) { // Si el usuario cancela el diálogo
-                return; // Salir del método sin agregar la fila
+            if (cantidadStr == null) {
+                return;
             }
             int cantidad;
             try {
@@ -450,14 +474,11 @@ public class VentaView extends JInternalFrame {
                 return;
             }
 
-            // Buscar si el producto ya existe en la tabla
             boolean productoExistente = false;
             for (int i = 0; i < productosTableModel.getRowCount(); i++) {
-                // Asegurarse de que el ID en la tabla es válido
                 Object idObj = productosTableModel.getValueAt(i, 0);
-                if (idObj == null) {
-                    continue; // Evitar valores nulos
-                }
+                if (idObj == null) continue;
+
                 String existingIdStr = idObj.toString();
                 int existingId;
                 try {
@@ -468,15 +489,8 @@ public class VentaView extends JInternalFrame {
                 }
 
                 if (existingId == id) {
-                    // Obtener la cantidad actual de la tabla
                     Object cantidadObj = productosTableModel.getValueAt(i, 3);
-                    int cantidadActual;
-                    try {
-                        cantidadActual = cantidadObj != null ? Integer.parseInt(cantidadObj.toString()) : 0;
-                    } catch (NumberFormatException e) {
-                        cantidadActual = 0; // Asumir 0 si no se puede parsear
-                    }
-
+                    int cantidadActual = cantidadObj != null ? Integer.parseInt(cantidadObj.toString()) : 0;
                     int nuevaCantidad = cantidadActual + cantidad;
                     if (nuevaCantidad <= producto.getStock()) {
                         productosTableModel.setValueAt(nuevaCantidad, i, 3);
@@ -488,7 +502,6 @@ public class VentaView extends JInternalFrame {
                 }
             }
 
-            // Si no existe, agregar nueva fila
             if (!productoExistente) {
                 productosTableModel.addRow(new Object[]{"P" + id + " - " + producto.getNombre(), producto.getNombre(), producto.getPrecioUnitario(), cantidad});
             }
@@ -509,41 +522,74 @@ public class VentaView extends JInternalFrame {
     private void calcularPrecioTotal() {
         double total = 0;
 
-        // Precio de la entrada
-        if (comboTiposEntrada.getSelectedItem() != null) {
+        if (comboTiposEntrada.getSelectedItem() != null && !comboTiposEntrada.getSelectedItem().equals("Seleccione una entrada")) {
             String tipoEntrada = (String) comboTiposEntrada.getSelectedItem();
             double precioEntrada = Double.parseDouble(tipoEntrada.split("\\$")[1].replace(")", ""));
             total += precioEntrada;
         }
 
-        // Precio de los productos
         for (int i = 0; i < productosTableModel.getRowCount(); i++) {
             double precio = Double.parseDouble(productosTableModel.getValueAt(i, 2).toString());
             int cantidad = Integer.parseInt(productosTableModel.getValueAt(i, 3).toString());
-            total += precio * cantidad * (1 - 0.05); // Aplica descuento del 5%
+            total += precio * cantidad; // Se eliminó el descuento del 5%
         }
 
         txtPrecioTotal.setText(String.format("%.2f", total));
     }
 
     private void registrarVenta() {
-        if (comboFunciones.getSelectedItem() == null || comboTiposEntrada.getSelectedItem() == null) {
+        if (comboFunciones.getSelectedItem() == null || comboFunciones.getSelectedItem().equals("Seleccione una función") ||
+            comboTiposEntrada.getSelectedItem() == null || comboTiposEntrada.getSelectedItem().equals("Seleccione una entrada")) {
             JOptionPane.showMessageDialog(this, "Debe seleccionar una función y un tipo de entrada.", "Advertencia", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         String clienteSeleccionado = (String) comboClientes.getSelectedItem();
         int clienteId;
-        if (clienteSeleccionado.equals("Sin cliente (0)")) {
+        if (clienteSeleccionado.equals("Seleccione un cliente")) {
             clienteId = 0;
         } else {
-            clienteId = Integer.parseInt(clienteSeleccionado.split(" \\(")[1].replace(")", ""));
+            String nombreCompleto = clienteSeleccionado;
+            String sql = "SELECT ID FROM Clientes WHERE Nombre + ' ' + Apellido = ?";
+            try (Connection conn = new CRUDVenta().Conectar();
+                 PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, nombreCompleto);
+                ResultSet rs = stmt.executeQuery();
+                if (rs.next()) {
+                    clienteId = rs.getInt("ID");
+                } else {
+                    JOptionPane.showMessageDialog(this, "Cliente no encontrado en la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Error al buscar cliente: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
         }
 
         String funcionSeleccionada = (String) comboFunciones.getSelectedItem();
         int funcionId = Integer.parseInt(funcionSeleccionada.split(" - ")[0].substring(1));
+        
         String tipoEntradaSeleccionado = (String) comboTiposEntrada.getSelectedItem();
-        int precioEntradaId = Integer.parseInt(tipoEntradaSeleccionado.split(" - ")[0]);
+        int precioEntradaId;
+        String sql = "SELECT ID FROM precioentradas WHERE Nombre || ' ($' || Precio || '.0)' = ?";
+        try (Connection conn = new CRUDVenta().Conectar();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, tipoEntradaSeleccionado);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                precioEntradaId = rs.getInt("ID");
+            } else {
+                JOptionPane.showMessageDialog(this, "Tipo de entrada no encontrado en la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error al buscar tipo de entrada: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
         String numeroFila = txtFila.getText().trim();
         int numeroAsiento;
         try {
@@ -553,13 +599,17 @@ public class VentaView extends JInternalFrame {
             return;
         }
         String metodoPago = (String) comboMetodoPago.getSelectedItem();
+        if (metodoPago.equals("Seleccione un pago")) {
+            JOptionPane.showMessageDialog(this, "Debe seleccionar un método de pago.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
         double precioTotal = Double.parseDouble(txtPrecioTotal.getText());
 
         Venta venta = new Venta(0, empleadoId, LocalDateTime.now(), "Entradas", metodoPago, precioTotal);
         boolean success = controlador.registrarVenta(venta, funcionId, precioEntradaId, numeroFila, numeroAsiento, productosTableModel, clienteId);
         if (success) {
             JOptionPane.showMessageDialog(this, "Venta registrada exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-            reiniciarFormulario(); // Reiniciar la interfaz en lugar de cerrar
+            reiniciarFormulario();
         }
     }
 }

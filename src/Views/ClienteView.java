@@ -46,7 +46,7 @@ public class ClienteView extends JInternalFrame {
     private JButton btnVolver;
     private ICliente clienteController;
     private LogoPanel logoPanel;
-    private JFrame parentFrame; // Reference to the containing JFrame
+    private JFrame parentFrame;
 
     class MainPanel extends JPanel {
         private Image backgroundImage;
@@ -124,11 +124,11 @@ public class ClienteView extends JInternalFrame {
     }
 
     public ClienteView(JDesktopPane desktop, JFrame parent) {
-        super("", true, true, true, true); // Empty title to avoid confusion, undecorated set below
+        super("", true, true, true, true); 
         setDefaultCloseOperation(JInternalFrame.DISPOSE_ON_CLOSE);
         setSize(800, 600);
         setResizable(false);
-        setBorder(null); // Remove the internal frame border
+        setBorder(null);
         putClientProperty("JInternalFrame.isPalette", Boolean.TRUE); // Remove title bar
         this.parentFrame = parent;
 
@@ -309,9 +309,9 @@ public class ClienteView extends JInternalFrame {
         btnVolver.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                dispose(); // Close the internal frame
+                dispose();
                 if (parentFrame != null) {
-                    parentFrame.dispose(); // Close the containing JFrame
+                    parentFrame.dispose(); 
                 }
             }
         });
